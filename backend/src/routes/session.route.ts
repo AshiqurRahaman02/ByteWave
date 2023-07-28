@@ -82,5 +82,45 @@ sessionRouter.post("/chat", async (req: Request, res: Response) => {
 	}
 });
 
+// get messages by bySessionID
+sessionRouter.get(
+	"/bySessionID/:sessionID",
+	async (req: Request, res: Response) => {
+		try {
+			const sessionID = req.params.sessionID;
+			const data: ISession | null = await SessionModel.findOne({
+				sessionID,
+			});
+			res.send({ success: true, sessions: data });
+		} catch (error) {
+			console.error("Error processing chat:", error);
+			res.status(500).json({
+				success: false,
+				message: "Failed to process chat",
+			});
+		}
+	}
+);
+
+// get messages by byUserID
+sessionRouter.get(
+	"/byUserID/:userID",
+	async (req: Request, res: Response) => {
+		try {
+			const userID = req.params.userID;
+			const data: ISession[] | null = await SessionModel.find({
+				userID,
+			});
+			res.send({ success: true, sessions: data });
+		} catch (error) {
+			console.error("Error processing chat:", error);
+			res.status(500).json({
+				success: false,
+				message: "Failed to process chat",
+			});
+		}
+	}
+);
+
 
 export default sessionRouter;
