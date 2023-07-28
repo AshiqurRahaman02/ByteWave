@@ -79,4 +79,38 @@ sessionRouter.post("/chat", (req, res) => __awaiter(void 0, void 0, void 0, func
         });
     }
 }));
+// get messages by bySessionID
+sessionRouter.get("/bySessionID/:sessionID", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const sessionID = req.params.sessionID;
+        const data = yield session_model_1.default.findOne({
+            sessionID,
+        });
+        res.send({ success: true, sessions: data });
+    }
+    catch (error) {
+        console.error("Error processing chat:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to process chat",
+        });
+    }
+}));
+// get messages by byUserID
+sessionRouter.get("/byUserID/:userID", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userID = req.params.userID;
+        const data = yield session_model_1.default.find({
+            userID,
+        });
+        res.send({ success: true, sessions: data });
+    }
+    catch (error) {
+        console.error("Error processing chat:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to process chat",
+        });
+    }
+}));
 exports.default = sessionRouter;
