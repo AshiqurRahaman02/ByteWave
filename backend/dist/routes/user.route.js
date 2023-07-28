@@ -39,7 +39,7 @@ userRouter.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, fun
     try {
         let user = yield user_model_1.default.findOne({ email });
         if (user) {
-            return res.status(404).json({
+            return res.status(201).json({
                 isError: false,
                 message: "Welcome back to the application",
                 user,

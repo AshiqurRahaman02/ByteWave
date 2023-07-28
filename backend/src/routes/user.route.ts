@@ -31,7 +31,7 @@ userRouter.post("/register", async (req: Request, res: Response) => {
 	try {
 		let user: IUser | null = await UserModel.findOne({ email });
 		if (user) {
-			return res.status(404).json({
+			return res.status(201).json({
 				isError: false,
 				message: "Welcome back to the application",
 				user,
