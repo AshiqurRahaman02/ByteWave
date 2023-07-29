@@ -60,7 +60,8 @@ sessionRouter.post("/chat", async (req: Request, res: Response) => {
 				chatcompletion.data.choices[0]?.message?.content ?? "";
 
 			let first = [];
-
+            
+			first.push({role:"system" , content:systemMsg});
 			first.push({ role: "user", content: msg });
 			first.push({
 				role: "assistant",
