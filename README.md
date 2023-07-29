@@ -53,16 +53,19 @@ Thank you for using Interview Preparation IA! We hope this tool helps you excel 
 
 # Homepage
 
-![Screenshot (1)]()
+![Screenshot 2023-07-29 214313](https://github.com/AshiqurRahaman02/ByteWave/assets/104593018/c1326fb1-33a4-469b-beae-d46c7b853ed4)
 
-# Sign Up
 
-![Screenshot (2)]()
 
 # Login Page
 
-![Screenshot (3)]()
+![Screenshot 2023-07-29 214214](https://github.com/AshiqurRahaman02/ByteWave/assets/104593018/356c5945-de61-4061-8b65-7ce1a0c1d142)
+
+# First Prompt Page
+![Screenshot 2023-07-29 214338](https://github.com/AshiqurRahaman02/ByteWave/assets/104593018/1c2786c5-4904-4355-bb9e-7f72bfedaf16)
+
 
 # Interview Page
 
-![Screenshot (4)]()
+![Screenshot 2023-07-29 214422](https://github.com/AshiqurRahaman02/ByteWave/assets/104593018/0cfe0c4e-3d8c-4701-8175-e906051130ae)
+
