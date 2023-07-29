@@ -39,7 +39,7 @@ Thank you for using Interview Preparation IA! We hope this tool helps you excel 
 
 <h3>1. Registeration Route for user :</h3>
 
-<h3> https://bytewave-backend.onrender.com/ register  </h3>
+<h3> https://bytewave-backend.onrender.com/ user / register  </h3>
 
 <p> In this route user have to enter his detailes like "name" and "email" for registering in this app. On successful registeration he will get his userID in the response.</p>
 
