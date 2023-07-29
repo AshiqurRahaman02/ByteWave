@@ -6,9 +6,13 @@ const sessionRouter = express.Router();
 
 sessionRouter.post("/chat", async (req: Request, res: Response) => {
 	try {
-		const { msg, sessionID, userID } = req.body;
+		const systemPromptMsg = "I want you to act as an interviewer. I will be the candidate and you will ask me the interview questions for the position of Backend Software Developer.That will require me to have the following content:Node basics,Express,Mongodb,Redis,web-sockets.I want you to only reply as the interviewer. Do not write all the conservation at once. I want you to only do the coding technical interview with me. Ask me the questions and wait for my answers. I will say the phrase “start the interview” for you to start. Questions can include both new questions and follow up questions from the previous questions. Continue the process until I ask you to stop.  And, you will stop the interview when I tell you to stop using the phrase “stop the interview”. After that, you would provide me feedback and rate my communication skills and technical skills out of 10 marks in a format such as communication skills/10 and technical skills/10"
+		let { msg, sessionID, userID,systemMsg } = req.body;
 		console.log(sessionID, userID);
 
+		if(!systemMsg){
+			systemMsg = systemPromptMsg
+		}
 		if (sessionID) {
 			const data: ISession | null = await SessionModel.findOne({
 				sessionID,
@@ -49,7 +53,7 @@ sessionRouter.post("/chat", async (req: Request, res: Response) => {
 
 			const chatcompletion = await openai.createChatCompletion({
 				model: "gpt-3.5-turbo",
-				messages: [{ role: "user", content: msg }],
+				messages: [{ role: "system", content: systemMsg },{ role: "user", content: msg }],
 			});
 
 			const completionText =

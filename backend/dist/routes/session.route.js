@@ -19,8 +19,12 @@ const sessionRouter = express_1.default.Router();
 sessionRouter.post("/chat", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f;
     try {
-        const { msg, sessionID, userID } = req.body;
+        const systemPromptMsg = "I want you to act as an interviewer. I will be the candidate and you will ask me the interview questions for the position of Backend Software Developer.That will require me to have the following content:Node basics,Express,Mongodb,Redis,web-sockets.I want you to only reply as the interviewer. Do not write all the conservation at once. I want you to only do the coding technical interview with me. Ask me the questions and wait for my answers. I will say the phrase “start the interview” for you to start. Questions can include both new questions and follow up questions from the previous questions. Continue the process until I ask you to stop.  And, you will stop the interview when I tell you to stop using the phrase “stop the interview”. After that, you would provide me feedback and rate my communication skills and technical skills out of 10 marks in a format such as communication skills/10 and technical skills/10";
+        let { msg, sessionID, userID, systemMsg } = req.body;
         console.log(sessionID, userID);
+        if (!systemMsg) {
+            systemMsg = systemPromptMsg;
+        }
         if (sessionID) {
             const data = yield session_model_1.default.findOne({
                 sessionID,
@@ -53,7 +57,7 @@ sessionRouter.post("/chat", (req, res) => __awaiter(void 0, void 0, void 0, func
             const sessionID = Math.floor(1000 + Math.random() * 9000);
             const chatcompletion = yield open_ai_1.default.createChatCompletion({
                 model: "gpt-3.5-turbo",
-                messages: [{ role: "user", content: msg }],
+                messages: [{ role: "system", content: systemMsg }, { role: "user", content: msg }],
             });
             const completionText = (_f = (_e = (_d = chatcompletion.data.choices[0]) === null || _d === void 0 ? void 0 : _d.message) === null || _e === void 0 ? void 0 : _e.content) !== null && _f !== void 0 ? _f : "";
             let first = [];
