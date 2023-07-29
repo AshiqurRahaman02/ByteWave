@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import logo from "../assets/logo.png";
 // import interview from "../assets/interview.png";
 import interview from "../assets/interview.jpg";
 import { Link } from "react-router-dom";
 import MyComponent from "../components/MyComponent";
 import AestheticLoading from "../components/AestheticLoading";
+import ReplyLoading from "../components/ReplyLoading";
 
 const Homepage: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -16,7 +17,27 @@ const Homepage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [chat, setChat] = useState("");
   const [textarea, setTextArea] = useState("");
-
+  const [replydata, setReplyData] = useState<string[]>([]);
+  // ------------------------------Working (Functional)--------------------
+  // -----------------------------New
+  const [userRequest, setUserRequest] = useState<string[]>([]);
+  const [scrollToBottom, setScrollToBottom] = useState(false);
+  const lastReplyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    // Scroll to the last reply when replydata changes and scrollToBottom is true
+    if (scrollToBottom && lastReplyRef.current) {
+      lastReplyRef.current.scrollIntoView({ behavior: "smooth" });
+      setScrollToBottom(false); // Reset the flag
+    }
+  }, [replydata, scrollToBottom]);
+  useEffect(() => {
+    // Automatically scroll to the bottom when the component mounts or whenever the loading state changes
+    if (!loading) {
+      setScrollToBottom(true);
+    }
+  }, [loading]);
+  // ------------------------------Working (Functional)--------------------
+  console.log(replydata);
   const handleTextAreaChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
@@ -31,8 +52,44 @@ const Homepage: React.FC = () => {
   const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedOption(event.target.value);
   };
-  const handleReplyClick = () => {};
+  //Repli Click API Request -----------------------------------------
+  const handleReplyClick = () => {
+    console.log(textarea);
+    setTextArea("");
+    setUserRequest([...userRequest, textarea]);
+    const userID = localStorage.getItem("bytewaveid");
+    const sessionID = localStorage.getItem("bytewavesessionID");
+    if (userID && sessionID && textarea) {
+      const interviewData = {
+        sessionID: sessionID,
+        userID: userID,
+        msg: textarea,
+      };
+      // Make the POST request
+      console.log("Reply Request console");
+      setLoading(true);
+      fetch("https://bytewave-backend.onrender.com/session/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(interviewData),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // Handle the response data if needed
+          setLoading(false);
+          console.log(data);
+          setReplyData([...replydata, data.reply]);
+        })
+        .catch((error) => {
+          // Handle errors if necessary
+          console.error("Error:", error);
+        });
+    }
+  };
   const handleStartButtonClick = () => {
+    console.log("startInterviewClicked");
     setIsInputVisible(false);
     setChat("");
     const userID = localStorage.getItem("bytewaveid");
@@ -162,38 +219,53 @@ const Homepage: React.FC = () => {
 
       {!isInputVisible && (
         <div className="mt-16 p-4">
-          <h2>
-            Choose A course from Below and the Click on the Start Interview
-            Button ⬇️
+          <h2 className="text-lg font-bold mb-4">
+            Choose a course from below and click on the{" "}
+            <span
+              style={{
+                backgroundColor: "#38B2AC", // Teal color
+                padding: "0.3rem 0.7rem", // Adding padding (adjust values as needed)
+                borderRadius: "0.25rem", // Optional: Adding rounded corners
+                color: "white", // Text color to white for better contrast
+                fontWeight: "lighter",
+              }}
+            >
+              Start Interview{" "}
+            </span>
+            button ⬇️
           </h2>
-          <div className="mb-4">
-            <input
-              type="radio"
-              value="MERN"
-              checked={selectedOption === "MERN"}
-              onChange={handleOptionChange}
-              className="mr-2"
-            />
-            <label className="mr-4">MERN</label>
+          <div className="mb-4 space-x-4">
+            <label className=" items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                value="MERN"
+                checked={selectedOption === "MERN"}
+                onChange={handleOptionChange}
+              />
+              <span className="text-teal-500">MERN</span>
+            </label>
 
-            <input
-              type="radio"
-              value="JAVA"
-              checked={selectedOption === "JAVA"}
-              onChange={handleOptionChange}
-              className="mr-2"
-            />
-            <label className="mr-4">JAVA</label>
+            <label className=" items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                value="JAVA"
+                checked={selectedOption === "JAVA"}
+                onChange={handleOptionChange}
+              />
+              <span className="text-red-500">JAVA</span>
+            </label>
 
-            <input
-              type="radio"
-              value="Node"
-              checked={selectedOption === "Node"}
-              onChange={handleOptionChange}
-              className="mr-2"
-            />
-            <label>Node</label>
+            <label className=" items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                value="Node"
+                checked={selectedOption === "Node"}
+                onChange={handleOptionChange}
+              />
+              <span className="text-blue-500">Node</span>
+            </label>
           </div>
+
           <div className="flex justify-center items-center ">
             <div className="bg-gray-200 rounded-lg p-4 w-70">
               {loading ? <AestheticLoading /> : null}
@@ -210,24 +282,85 @@ const Homepage: React.FC = () => {
           </div>
 
           <div className="flex flex-col items-center justify-center">
+            <div style={{ width: "70%" }} className="space-y-4 mb-4">
+              {loading ? (
+                <ReplyLoading />
+              ) : (
+                replydata.map((el, i) => (
+                  <div
+                    key={el}
+                    className="p-4 bg-teal-500 text-white rounded-lg shadow-xl"
+                    ref={i === replydata.length - 1 ? lastReplyRef : null}
+                  >
+                    <p className="text-sm font-bold">Response {i + 1}</p>
+                    <hr className="mt-2 mb-2" />
+                    <p className="text-lg">{el}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
             <textarea
               value={textarea}
               onChange={handleTextAreaChange}
               placeholder="Enter your Response"
-              disabled={!selectedOption || chat === ""}
+              disabled={!selectedOption || chat === "" || loading}
               className="border rounded-lg px-2 py-1"
               style={{ width: "70%", minHeight: "100px" }}
             />
 
-            <button
-              className={`mt-2 bg-teal-500 text-white px-4 py-2 rounded-lg ${
-                chat === "" ? "cursor-not-allowed opacity-20" : "cursor-pointer"
-              }`}
-              disabled={chat === ""}
-              onClick={handleReplyClick}
+            <div
+              style={{
+                marginBottom: "15px",
+                display: "flex",
+                width: "70%",
+                justifyContent: "space-between",
+              }}
             >
-              Reply
-            </button>
+              <button
+                className={`mt-2 bg-blue-500 text-white px-4 py-2  rounded-lg ${
+                  chat === ""
+                    ? "cursor-not-allowed opacity-20"
+                    : "cursor-pointer"
+                }`}
+                disabled={loading || !textarea || chat === ""}
+                onClick={() =>
+                  setTextArea("Please proceed to the next question")
+                }
+                style={{
+                  cursor: loading ? "not-allowed" : "grab",
+                  backgroundColor: loading ? "#868686" : "",
+                }}
+              >
+                Next Question
+              </button>
+              <button
+                className={`mt-2 bg-teal-500 text-white px-4 py-2 rounded-lg ${
+                  chat === ""
+                    ? "cursor-not-allowed opacity-20"
+                    : "cursor-pointer"
+                }`}
+                disabled={chat === "" || loading}
+                onClick={handleReplyClick}
+              >
+                Reply
+              </button>
+              <button
+                className={`mt-2 bg-red-500 text-white px-4 py-2  rounded-lg ${
+                  chat === ""
+                    ? "cursor-not-allowed opacity-20"
+                    : "cursor-pointer"
+                }`}
+                disabled={chat === "" || loading}
+                onClick={() =>
+                  setTextArea(
+                    "Please end the Interview and give me complete review of my performance"
+                  )
+                }
+              >
+                End Interview
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center justify-center">
@@ -235,20 +368,32 @@ const Homepage: React.FC = () => {
               <img
                 src={interview}
                 alt="Logo"
-                className="h-80 object-contain rounded-tl-lg rounded-tr-lg rounded-br-lg rounded-bl-xl"
+                className="h-60 object-contain rounded-tl-lg rounded-tr-lg rounded-br-lg rounded-bl-xl"
                 // style={{ maxHeight: "40px" }}
               />
             ) : null}
           </div>
           <button
             onClick={handleStartButtonClick}
-            disabled={(!selectedOption && chat === "") || loading}
+            disabled={
+              (!selectedOption && chat === "") ||
+              loading ||
+              replydata.length > 0
+            }
             className={`mt-4 bg-${
               selectedOption ? "teal-500" : "gray-400"
             } text-white px-4 py-2 rounded-lg ${
               selectedOption ? "cursor-pointer" : "cursor-not-allowed"
-            } ${selectedOption ? "" : "border-black  bg-teal-500 "}`}
-            style={{ opacity: selectedOption ? 1 : 0.2 }} // Optional: Reduce opacity for disabled button
+            } ${selectedOption ? "" : "border-black  bg-teal-500"} ${
+              replydata.length > 0 ? "opacity-40 cursor-not-allowed" : ""
+            }`}
+            style={{
+              opacity: selectedOption && replydata.length === 0 ? 1 : 0.2,
+              cursor:
+                selectedOption && replydata.length === 0
+                  ? "grab"
+                  : "not-allowed",
+            }} // Optional: Reduce opacity for disabled button
           >
             Start the Interview
           </button>
