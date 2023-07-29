@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
-import interview from "../assets/interview.png";
+// import interview from "../assets/interview.png";
+import interview from "../assets/interview.jpg";
 import { Link } from "react-router-dom";
 import MyComponent from "../components/MyComponent";
+import AestheticLoading from "../components/AestheticLoading";
 
 const Homepage: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -10,6 +12,16 @@ const Homepage: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState("");
   const [isInputVisible, setIsInputVisible] = useState(true);
   const [validator, setValidator] = useState("");
+  const [welcome, setWelcome] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [chat, setChat] = useState("");
+  const [textarea, setTextArea] = useState("");
+
+  const handleTextAreaChange = (
+    event: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    setTextArea(event.target.value);
+  };
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(event.target.value);
   };
@@ -19,9 +31,41 @@ const Homepage: React.FC = () => {
   const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedOption(event.target.value);
   };
-
+  const handleReplyClick = () => {};
   const handleStartButtonClick = () => {
     setIsInputVisible(false);
+    setChat("");
+    const userID = localStorage.getItem("bytewaveid");
+    if (userID && selectedOption) {
+      const interviewData = {
+        msg: "Start the Interview",
+        userID: userID,
+        systemMsg:
+          "I want you to act as an interviewer. I will be the candidate and you will ask me the interview questions for the position of Backend Software Developer.That will require me to have the following content:Node basics Express Mongodb Redis web-sockets.I want you to only reply as the interviewer. Do not write all the conservation at once. I want you to only do the coding technical interview with me. Ask me the questions and wait for my answers. I will say the phrase “start the interview” for you to start. Ask one question at a time.{<Ask me the questions individually like an interviewer and wait for my answers.>}Questions can include both new questions and follow up questions from the previous questions. Continue the process until I ask you to stop.  And, you will stop the interview when I tell you to stop using the phrase “stop the interview”. After that, you would provide me feedback.The feedback should be evaluated using the following rubrics:Subject Matter Expertise Communication skills Hiring criteria : Options are Reject, Waitlist, Hire and Strong Hire .Feedback for Subject Matter Expertise and Communication skills should contain ratings on my interview responses from 0 - 10 Some Example questions:1. Create a todo app 2. Explain useState and useEffect through code 3. How to debug this piece of code.important note - only ask one question at a time and share the feedback as soon as interview stops",
+      };
+      // Make the POST request
+      console.log("here");
+      setLoading(true);
+      fetch("https://bytewave-backend.onrender.com/session/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(interviewData),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // Handle the response data if needed
+          setLoading(false);
+          console.log(data);
+          setChat(data.reply);
+          localStorage.setItem("bytewavesessionID", data.sessionID);
+        })
+        .catch((error) => {
+          // Handle errors if necessary
+          console.error("Error:", error);
+        });
+    }
   };
 
   return (
@@ -38,8 +82,8 @@ const Homepage: React.FC = () => {
           </Link>
           {username && (
             <div className="text-right">
-              <p className="font-bold">{username}</p>
-              <p className="text-sm">Welcome !</p>
+              <p className="font-bold">Hi, {username}</p>
+              <p className="text-sm">{welcome}</p>
             </div>
           )}
         </div>
@@ -63,7 +107,7 @@ const Homepage: React.FC = () => {
               className="border rounded-lg px-2 py-1 w-full"
             />
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (username.length < 5) {
                   setValidator("Username must be at least 5 characters long.");
                   return;
@@ -79,6 +123,33 @@ const Homepage: React.FC = () => {
                   setIsInputVisible(false);
                   setValidator("");
                 }
+                // Make the post request
+                try {
+                  const response = await fetch(
+                    "https://bytewave-backend.onrender.com/user/register",
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        email: email,
+                        name: username,
+                      }),
+                    }
+                  );
+
+                  const data = await response.json();
+
+                  // Store the userid in local storage with the key name "bytewaveid"
+
+                  if (data?.user?._id) {
+                    localStorage.setItem("bytewaveid", data.user._id);
+                  }
+                  setWelcome(data.message);
+                } catch (error) {
+                  console.error("Error:", error);
+                }
               }}
               className="mt-2 bg-teal-500 text-white px-4 py-1 rounded-lg"
             >
@@ -91,6 +162,10 @@ const Homepage: React.FC = () => {
 
       {!isInputVisible && (
         <div className="mt-16 p-4">
+          <h2>
+            Choose A course from Below and the Click on the Start Interview
+            Button ⬇️
+          </h2>
           <div className="mb-4">
             <input
               type="radio"
@@ -119,33 +194,64 @@ const Homepage: React.FC = () => {
             />
             <label>Node</label>
           </div>
+          <div className="flex justify-center items-center ">
+            <div className="bg-gray-200 rounded-lg p-4 w-70">
+              {loading ? <AestheticLoading /> : null}
+              <p className="font-bold">
+                {chat && selectedOption
+                  ? chat
+                  : selectedOption
+                  ? ""
+                  : "Loading.....!"
+                  ? !chat && !selectedOption
+                  : ""}
+              </p>
+            </div>
+          </div>
 
-          <input
-            type="text"
-            placeholder="Enter something"
-            disabled={!selectedOption}
-            className="border rounded-lg px-2 py-1 w-full"
-          />
-          <div className="flex items-center justify-center">
-            <img
-              src={interview}
-              alt="Logo"
-              className="h-80 object-contain rounded-tl-lg rounded-tr-lg rounded-br-lg rounded-bl-xl"
-              // style={{ maxHeight: "40px" }}
+          <div className="flex flex-col items-center justify-center">
+            <textarea
+              value={textarea}
+              onChange={handleTextAreaChange}
+              placeholder="Enter your Response"
+              disabled={!selectedOption || chat === ""}
+              className="border rounded-lg px-2 py-1"
+              style={{ width: "70%", minHeight: "100px" }}
             />
+
+            <button
+              className={`mt-2 bg-teal-500 text-white px-4 py-2 rounded-lg ${
+                chat === "" ? "cursor-not-allowed opacity-20" : "cursor-pointer"
+              }`}
+              disabled={chat === ""}
+              onClick={handleReplyClick}
+            >
+              Reply
+            </button>
+          </div>
+
+          <div className="flex items-center justify-center">
+            {!chat ? (
+              <img
+                src={interview}
+                alt="Logo"
+                className="h-80 object-contain rounded-tl-lg rounded-tr-lg rounded-br-lg rounded-bl-xl"
+                // style={{ maxHeight: "40px" }}
+              />
+            ) : null}
           </div>
           <button
             onClick={handleStartButtonClick}
-            disabled={!selectedOption}
+            disabled={(!selectedOption && chat === "") || loading}
             className={`mt-4 bg-${
-              selectedOption ? "teal-500" : "teal-500"
+              selectedOption ? "teal-500" : "gray-400"
             } text-white px-4 py-2 rounded-lg ${
               selectedOption ? "cursor-pointer" : "cursor-not-allowed"
-            } ${selectedOption ? "" : "border-teal-500"}`}
+            } ${selectedOption ? "" : "border-black  bg-teal-500 "}`}
+            style={{ opacity: selectedOption ? 1 : 0.2 }} // Optional: Reduce opacity for disabled button
           >
-            Start
+            Start the Interview
           </button>
-          <MyComponent />
         </div>
       )}
     </div>
